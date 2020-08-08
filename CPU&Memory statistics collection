@@ -1,0 +1,24 @@
+Configure cron to collect the CPU and memory statistics of a VM in every ten minutes
+
+To understand if there is an issue with the memory or CPU and what is the process which is consuming it. Please configure the “Cron” job by using the below procedure.
+
+Step 1:-
+Create a file with the name “script.sh” ,append the below entries and add execute permission using the below commands.
+$sudo su –
+	#vi /root/script.sh    -----------------  > append below contents to the file then save and exit(:wq)
+iostat 1 10 > /var/log/performance/iostat.`date +%FT%H%M`
+vmstat 1 10 > /var/log/performance/vmstat.`date +%FT%H%M`
+ps -eo pid,command,%mem,%cpu,user,time > /var/log/performance/ps.`date +%FT%H%M`
+free –m > /var/log/performance/free-m.`date +%FT%H%M`
+top -n 1 -b > /var/log/performance/top.`date +%FT%H%M`
+/usr/sbin/iotop -botqqq --iter=15 > /var/log/performance/iotop.`date +%FT%H%M`
+
+Step 2:-
+#chmod +x  /root/script.sh    
+
+Step 3:-
+You can configure the “Cron” to run the above script for every ten minutes(you can specify different time), which will collect details related to CPU and memory.
+*/10    *       *       *       *       /bin/bash /root/script.sh
+
+iotop  displays the list of current I/O usage by processes or threads on the system. Before adding the above entry to script, please run the below command on the VM and ensure iotop is installed(this command will show the process details with IO usage).
+iotop -botqqq --iter=15  (If the command not found please install the package: sudo yum install iotop )
